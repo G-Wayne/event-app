@@ -29,11 +29,7 @@ class EventFlyer(db.Model):
 	eventId       = db.Column(db.Integer,db.ForeignKey('event.id'))
 	flyerPath	  = db.Column(db.String(100),nullable=False)
 
-class FeedBack(db.Model):
-	id 			  = db.Column(db.Integer,primary_key=True)
-	comment       = db.Column(db.String(1000),nullable=False)
-	rating 	      = db.Column(db.Integer,nullable=False)
-	eventId		  = db.Column(db.Integer,db.ForeignKey('event.id'))
+
 
 class EventFeedback(db.Model):
 	id=db.Column(db.Integer,primary_key=True)

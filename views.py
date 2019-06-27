@@ -1,7 +1,7 @@
 from flask import Flask,request,jsonify,make_response
 from flask_sqlalchemy import SQLAlchemy 
 from runapp import app,db
-# from models import *
+from models import *
 import uuid
 from werkzeug.security  import generate_password_hash,check_password_hash
 from werkzeug.utils import secure_filename
@@ -76,7 +76,7 @@ def get_one_user(current_user,public_id):
 
 
 @app.route('/user',methods=['POST'])
-@token_required
+# @token_required
 def create_user(current_user):
 
 	if not current_user.admin:
