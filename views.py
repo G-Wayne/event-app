@@ -1,9 +1,13 @@
 from flask import Flask,request,jsonify,make_response
 from flask_sqlalchemy import SQLAlchemy 
+from runapp import app,db
+from models import *
 import uuid
 from werkzeug.security  import generate_password_hash,check_password_hash
+from werkzeug.utils import secure_filename
 import jwt
 import datetime
+import os
 from functools import wraps
 
 def token_required(f):
@@ -135,7 +139,7 @@ def login():
 		return make_response('Could not verify',401, {'WWW-Authenticate': 'Basic realm= "Login Required!"' })
 
 	if check_password_hash(user.password,auth.password):
-		token=jwt.encode({'public_id': user.public_id , 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'])
+		token=jwt.encode({'public_id': user.public_id , 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60)}, app.config['SECRET_KEY'])
 
 		return jsonify({'token': token.decode('UTF-8')})
 
@@ -208,17 +212,40 @@ def get_one_event(current_user,event_id):
 	return jsonify(event_data)
 
 
+def allowed_file(filename):
+	return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+			
+
 @app.route('/event',methods=['POST'])
 @token_required
 def create_event(current_user):  #Question6- Authenticated users can create an event
 	data= request.get_json()
-
-	new_event= Event(title=data['title'], name=data['name'], description=data['description'], category=data['category'], start_date_start_time=data['start_date_start_time'], end_date_end_time= data['end_date_end_time'], cost=data['cost'],venue=data['venue'],flyer=data['flyer'],visible=False,creator=current_user.id)
+	new_event= Event(public_name=str(uuid.uuid4()),title=data['title'], name=data['name'], description=data['description'], category=data['category'], start_date=data['start_date'],start_time=data['start_time'], end_date= data['end_date'],end_time=data['end_time'], cost=data['cost'],venue=data['venue'],visible=False,creator=data['creator'])
 	db.session.add(new_event) 
 	db.session.commit()
 
 	return jsonify({"message": "Event created!"})
-
+##   
+#IMAGE UPLOAD
+##
+ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
+@app.route('/upload_flyer/<public_name>', methods=['PUT'])
+def upload_file(public_name):
+    if request.method == 'PUT':
+        if 'file' not in request.files:
+            return jsonify({'message':'No file part'})
+        file =request.files['file']
+        if allowed_file(file.filename):
+            # event=Event.query.filter_by(public_name=public_name).first()
+            filename=secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'],filename))
+            # if name:
+            eventimg=EventFlyer(public_name=public_name,flyerPath=os.path.join(app.config['UPLOAD_FOLDER'],filename))
+            db.session.add(eventimg)
+            db.session.commit()
+            return jsonify({'message':'File upload successful'})
 
 @app.route('/event/<event_id>', methods=['PUT'])
 @token_required
@@ -249,12 +276,19 @@ def delete_event(current_user, event_id):
 	return jsonify({'message': 'Event deleted!'})
 
 
-@app.route('/event/<event_id>', methods=['POST'])  #Question 6-Non-authenticated so we dont need the @token_required decorator
+#Question 6-Non-authenticated so we dont need the @token_required decorator
+@app.route('/event/<event_id>/comment', methods=['POST'])  
 def comment_event(event_id):
-	return ''
+    event= Event.query.filter_by(id=event_id).first()
+    if not event:
+		        return jsonify({'message': 'No Event found!'})
 
-@app.route('/event/<event_id>', methods=['POST'])
-def rate_event(event_id):
-	return ''
-
+    data = request.get_json()
+    new_Feedback= EventFeedback(email=data['email'],rating=data['rating'],ename=event.name,comment=data['comment'])
+    db.session.add(new_Feedback) 
+    db.session.commit()
+    return jsonify({"message": "Event created!"})
 #Extra attributes for comment and rate in User table to be made..
+
+
+
