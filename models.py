@@ -24,8 +24,8 @@ class Event(db.Model): #Additional Attributes - Question 5
 	visible		  = db.Column(db.Boolean,nullable=False)
 	
 class Plans(db.Model):
-	creator	      = db.Column(db.Integer,db.ForeignKey('user.id'))
-	event	=db.Column(db.Integer,db.ForeignKey('event.id'))
+	userId	      = db.Column(db.Integer,db.ForeignKey('user.id'))
+	eventId	=db.Column(db.Integer,db.ForeignKey('event.id'))
 	
 
 class EventFlyer(db.Model):
@@ -40,5 +40,5 @@ class EventFeedback(db.Model):
 	id=db.Column(db.Integer,primary_key=True)
 	email = db.Column(db.String(50))
 	rating = db.Column(db.Integer)
-	ename = db.Column(db.String(50),db.ForeignKey('event.name'))
+	eventId = db.Column(db.Integer,db.ForeignKey('event.id'))
 	comment = db.Column(db.String(100))
