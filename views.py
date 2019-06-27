@@ -1,7 +1,7 @@
 from flask import Flask,request,jsonify,make_response
 from flask_sqlalchemy import SQLAlchemy 
 from runapp import app,db
-from models import *
+# from models import *
 import uuid
 from werkzeug.security  import generate_password_hash,check_password_hash
 from werkzeug.utils import secure_filename
