@@ -21,7 +21,11 @@ class Event(db.Model): #Additional Attributes - Question 5
 	cost		  = db.Column(db.Float,nullable=False)
 	venue		  = db.Column(db.String(100),nullable=False)
 	visible		  = db.Column(db.Boolean,nullable=False)
+	
+class Plans(db.Model):
 	creator	      = db.Column(db.Integer,db.ForeignKey('user.id'))
+	event	=db.Column(db.Integer,db.ForeignKey('event.id'))
+	
 
 class EventFlyer(db.Model):
 	id   		  = db.Column(db.Integer,primary_key=True)
