@@ -4,10 +4,10 @@ import uuid
 import jwt
 import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import User, Event, EventFeedback
+from models import User, Event, Feedback
 from functools import wraps
 
-# create decorated function for token
+# create decorated function for token authorization
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -40,12 +40,28 @@ def create_user():
     #     return jsonify({'message':'You are not authorized to perform this action'})
     data = request.get_json()
     pword_hashed = generate_password_hash(data['password'],method='sha256')
-    user = User(public_id=str(uuid.uuid4()), name=data['name'],password=pword_hashed,admin=False,age=data['age'],bio=data['bio'])
+    user = User(public_id=str(uuid.uuid4()), name=data['name'],password=pword_hashed,admin=False)
     db.session.add(user)
     db.session.commit()
     return jsonify({'message':'The user was created'})
 
-# All Users
+# Edit to Update User profile  
+@app.route('/user/edit/<public_id>',methods=['PUT'])
+@token_required
+def edit_user(current_user, public_id):
+    user = User.query.filter_by(public_id=public_id).first()
+    if not user:
+        return jsonify({'message':'This user does not exist!'})
+      
+    data = request.get_json()
+    pword_hashed = generate_password_hash(data['password'],method='sha256')
+    user.public_id=user.public_id
+    user.name=data['name']
+    user.password=pword_hashed
+    db.session.commit()
+    return jsonify({'message':'The user profile was updated'})
+
+# Read All Users
 @app.route('/user',methods=['GET'])
 @token_required
 @admin_required
@@ -64,7 +80,7 @@ def list_users(current_user):
 
     return jsonify({'users':users_list})
 
-# search user 
+# search user by id
 @app.route('/user/<public_id>', methods=['GET'])
 @token_required
 @admin_required
@@ -81,7 +97,7 @@ def getuser(current_user, public_id):
     user_dict['admin'] = user.admin
     return jsonify({'user':user_dict})
 
-# Delete user
+# Delete user by id
 @app.route('/user/<public_id>', methods=['DELETE'])
 @token_required
 @admin_required
@@ -96,6 +112,7 @@ def delete(current_user, public_id):
 # Update user to make admin
 @app.route('/user/<public_id>', methods=['PUT'])
 @token_required
+@admin_required
 def make_admin(current_user, public_id):
     user = User.query.filter_by(public_id=public_id).first()
     if not user:
@@ -107,7 +124,7 @@ def make_admin(current_user, public_id):
 
 # Login 
 # Question 1- When the user login it will generate a JSON token where it will be stored in the Headers section in Postman where they can use 
-# the diffrernt routes for the API.
+# the different routes for the API.
 @app.route('/login')
 def login():
     auth = request.authorization
@@ -128,66 +145,102 @@ def login():
 #Questin 3 - 2 Users already have been created with admin roles in Postman where I called the promote_user function so that they are promoted
 # to Admin(in Screenshots).
 
-#######################START VISIBLE EVENTS ####################################
+#######################START VISIBLE EVENTS FOR ALL USERS ####################################
 
 # Get All visible events
 @app.route('/events', methods=['GET'])
-
 def get_events():
 
-	# if not current_user.admin:
-	# 	return jsonify({'message': 'Cannot perform that function!'})
+    events= Event.query.filter_by(visible=True).all()
 
-	events= Event.query.filter_by(visible=True).all()
+    output=[]
 
-	output=[]
+    for event in events:
+        event_data={}
+        event_data['id']= event.id
+        event_data['title']= event.title
+        event_data['name']= event.name
+        event_data['description']= event.description
+        event_data['category']= event.category
+        event_data['start_date']= event.start_date
+        event_data['start_time']= event.start_time
+        event_data['end_date']= event.end_date
+        event_data['end_time']= event.end_time
+        event_data['cost']= event.cost
+        event_data['venue']= event.venue
+        event_data['flyer']= event.flyer
+        event_data['visible']= event.visible
+        event_data['creator']= event.creator
+        output.append(event_data)
 
-	for event in events:
-		event_data={}
-		event_data['id']= event.id
-		event_data['title']= event.title
-		event_data['name']= event.name
-		event_data['description']= event.description
-		event_data['category']= event.category
-		event_data['start_date_start_time']= event.start_date_start_time
-		event_data['end_date_end_time']= event.end_date_end_time
-		event_data['cost']= event.cost
-		event_data['venue']= event.venue
-		event_data['flyer']= event.flyer
-		event_data['visible']= event.visible
-		event_data['creator']= event.creator
-		output.append(event_data)
-
-	return jsonify({'event': output})
+    return jsonify({'event': output})
 
 # search for visible events
 @app.route('/events/<event_id>', methods=['GET'])
-def search_one_event(current_user,event_id):
+def search_one_event(event_id):
 
-	event= Event.query.filter_by(id=event_id, visible=True).first()
+    event= Event.query.filter_by(id=event_id, visible=True).first()
 
-	#When searching for an event we are ensuring that the admin has made that event public.
-	if not event.visible:
-		return jsonify({'message':' Admin has not yet made this event public to be seen'})
+    #When searching for an event we are ensuring that the admin has made that event public.
+    if not event.visible:
+        return jsonify({'message':' Admin has not yet made this event public to be seen'})
 
-	if not event:
-		return jsonify({'message': 'No event found'})
+    if not event:
+        return jsonify({'message': 'No event found'})
 
-	event_data={}
-	event_data['id']= event.id
-	event_data['title']= event.title
-	event_data['name']= event.name
-	event_data['description']= event.description
-	event_data['category']= event.category
-	event_data['start_date_start_time']= event.start_date_start_time
-	event_data['end_date_end_time']= event.end_date_end_time
-	event_data['cost']= event.cost
-	event_data['venue']= event.venue
-	event_data['flyer']= event.flyer
-	event_data['visible']= event.visible
-	event_data['creator']= event.creator
+    event_data={}
+    event_data['id']= event.id
+    event_data['title']= event.title
+    event_data['name']= event.name
+    event_data['description']= event.description
+    event_data['category']= event.category
+    event_data['start_date']= event.start_date
+    event_data['start_time']= event.start_time
+    event_data['end_date']= event.end_date
+    event_data['end_time']= event.end_time
+    event_data['cost']= event.cost
+    event_data['venue']= event.venue
+    event_data['flyer']= event.flyer
+    event_data['visible']= event.visible
+    event_data['creator']= event.creator
 
-	return jsonify(event_data)
+    return jsonify(event_data)
+
+
+#Question 6-Non-authenticated so we dont need the @token_required decorator
+@app.route('/events/<event_id>/feedback', methods=['POST'])  
+def comment_event(event_id):
+    event= Event.query.filter_by(id=event_id).first()
+    if not event:
+		return jsonify({'message': 'No Event found!'})
+
+    data = request.get_json()
+    new_Feedback= Feedback(email=data['email'],rating=data['rating'],ename=event.name,eventId=event.id, comment=data['comment'])
+    db.session.add(new_Feedback) 
+    db.session.commit()
+    return jsonify({"message": "Comment created!"})
+
+
+# Get All visible events
+@app.route('/feedback', methods=['GET'])
+def get_comments():
+
+    Feedbacks= Feedback.query.all()
+
+    output=[]
+
+    for feedback in Feedbacks:
+        feedback_data={}
+        feedback_data['id']=feedback.id
+        feedback_data['email']= feedback.email
+        feedback_data['rating']= feedback.rating
+        feedback_data['ename']= feedback.ename
+        feedback_data['eventId']= feedback.eventId
+        feedback_data['comment']= feedback.comment
+        output.append(feedback_data)
+
+    return jsonify({'feedback': output})
+
 
 
 
@@ -202,66 +255,67 @@ def search_one_event(current_user,event_id):
 @app.route('/event', methods=['GET'])
 @token_required
 
-def get_all_events(current_user):
+def get_my_events(current_user):
 
-	# if not current_user.admin:
-	# 	return jsonify({'message': 'Cannot perform that function!'})
+    events= Event.query.filter_by(creator=current_user.id).all()
 
-	events= Event.query.filter_by(creator=current_user.id).all()
+    output=[]
 
-	output=[]
+    for event in events:
+        event_data={}
+        event_data['id']= event.id
+        event_data['title']= event.title
+        event_data['name']= event.name
+        event_data['description']= event.description
+        event_data['category']= event.category
+        event_data['start_date']= event.start_date
+        event_data['start_time']= event.start_time
+        event_data['end_date']= event.end_date
+        event_data['end_time']= event.end_time
+        event_data['cost']= event.cost
+        event_data['venue']= event.venue
+        event_data['flyer']= event.flyer
+        event_data['visible']= event.visible
+        event_data['creator']= event.creator
+        output.append(event_data)
 
-	for event in events:
-		event_data={}
-		event_data['id']= event.id
-		event_data['title']= event.title
-		event_data['name']= event.name
-		event_data['description']= event.description
-		event_data['category']= event.category
-		event_data['start_date_start_time']= event.start_date_start_time
-		event_data['end_date_end_time']= event.end_date_end_time
-		event_data['cost']= event.cost
-		event_data['venue']= event.venue
-		event_data['flyer']= event.flyer
-		event_data['visible']= event.visible
-		event_data['creator']= event.creator
-		output.append(event_data)
-
-	return jsonify({'event': output})
+    return jsonify({'event': output})
 
 # Current User search for an event
 @app.route('/event/<event_id>', methods=['GET'])
 @token_required
 def get_one_event(current_user,event_id):
 
-	event= Event.query.filter_by(id=event_id, creator=current_user.id).first()
+    event= Event.query.filter_by(id=event_id, creator=current_user.id).first()
 
-	if not event:
-		return jsonify({'message': 'No event found'})
+    if not event:
+        return jsonify({'message': 'No event found'})
 
-	event_data={}
-	event_data['id']= event.id
-	event_data['title']= event.title
-	event_data['name']= event.name
-	event_data['description']= event.description
-	event_data['category']= event.category
-	event_data['start_date_start_time']= event.start_date_start_time
-	event_data['end_date_end_time']= event.end_date_end_time
-	event_data['cost']= event.cost
-	event_data['venue']= event.venue
-	event_data['flyer']= event.flyer
-	event_data['visible']= event.visible
-	event_data['creator']= event.creator
+    event_data={}
+    event_data['id']= event.id
+    event_data['title']= event.title
+    event_data['name']= event.name
+    event_data['description']= event.description
+    event_data['category']= event.category
+    event_data['start_date']= event.start_date
+    event_data['start_time']= event.start_time
+    event_data['end_date']= event.end_date
+    event_data['end_time']= event.end_time
+    event_data['cost']= event.cost
+    event_data['venue']= event.venue
+    event_data['flyer']= event.flyer
+    event_data['visible']= event.visible
+    event_data['creator']= event.creator
 
-	return jsonify(event_data)
+    return jsonify(event_data)
 
-
+#Question6- Authenticated users can create an event
 @app.route('/event',methods=['POST'])
 @token_required
-def create_event(current_user):  #Question6- Authenticated users can create an event
+def create_event(current_user):  
 	data= request.get_json()
 
-	new_event= Event(title=data['title'], name=data['name'], description=data['description'], category=data['category'], start_date_start_time=data['start_date_start_time'], end_date_end_time= data['end_date_end_time'], cost=data['cost'],venue=data['venue'],flyer=data['flyer'],visible=False,creator=current_user.id)
+	new_event= Event(title=data['title'], name=data['name'], description=data['description'], category=data['category'], start_date=data['start_date'], end_date= data['end_date'], start_time=data['start_time'], end_time= data['end_time'],cost=data['cost'],venue=data['venue'],flyer=data['flyer'],visible=False,creator=current_user.id)
 	db.session.add(new_event) 
 	db.session.commit()
 
@@ -281,7 +335,7 @@ def set_visible(current_user, event_id):
     db.session.commit()
     return jsonify({'message': 'Event has been set to visible!'})
 
-
+# Current user delete an event
 @app.route('/event/<event_id>', methods=['DELETE'])
 @token_required
 def delete_event(current_user, event_id):
@@ -295,19 +349,6 @@ def delete_event(current_user, event_id):
 
 	return jsonify({'message': 'Event deleted!'})
 
-
-#Question 6-Non-authenticated so we dont need the @token_required decorator
-@app.route('/event/<event_id>/comment', methods=['POST'])  
-def comment_event(event_id):
-    event= Event.query.filter_by(id=event_id).first()
-    if not event:
-		return jsonify({'message': 'No Event found!'})
-
-    data = request.get_json()
-    new_Feedback= EventFeedback(email=data['email'],rating=data['rating'],ename=event.name,comment=data['comment'])
-    db.session.add(new_Feedback) 
-    db.session.commit()
-    return jsonify({"message": "Event created!"})
 
 
 @app.route('/event/<event_id>', methods=['POST'])
