@@ -168,7 +168,6 @@ def get_events():
         event_data['end_time']= event.end_time
         event_data['cost']= event.cost
         event_data['venue']= event.venue
-        event_data['flyer']= event.flyer
         event_data['visible']= event.visible
         event_data['creator']= event.creator
         output.append(event_data)
@@ -215,7 +214,7 @@ def comment_event(event_id):
 		return jsonify({'message': 'No Event found!'})
 
     data = request.get_json()
-    new_Feedback= Feedback(email=data['email'],rating=data['rating'],ename=event.name,eventId=event.id, comment=data['comment'])
+    new_Feedback= Feedback(email=data['email'],rating=data['rating'],eventId=event.id, comment=data['comment'])
     db.session.add(new_Feedback) 
     db.session.commit()
     return jsonify({"message": "Comment created!"})
@@ -234,7 +233,6 @@ def get_comments():
         feedback_data['id']=feedback.id
         feedback_data['email']= feedback.email
         feedback_data['rating']= feedback.rating
-        feedback_data['ename']= feedback.ename
         feedback_data['eventId']= feedback.eventId
         feedback_data['comment']= feedback.comment
         output.append(feedback_data)
@@ -274,7 +272,6 @@ def get_my_events(current_user):
         event_data['end_time']= event.end_time
         event_data['cost']= event.cost
         event_data['venue']= event.venue
-        event_data['flyer']= event.flyer
         event_data['visible']= event.visible
         event_data['creator']= event.creator
         output.append(event_data)
@@ -303,7 +300,7 @@ def get_one_event(current_user,event_id):
     event_data['end_time']= event.end_time
     event_data['cost']= event.cost
     event_data['venue']= event.venue
-    event_data['flyer']= event.flyer
+
     event_data['visible']= event.visible
     event_data['creator']= event.creator
 
@@ -315,7 +312,7 @@ def get_one_event(current_user,event_id):
 def create_event(current_user):  
 	data= request.get_json()
 
-	new_event= Event(title=data['title'], name=data['name'], description=data['description'], category=data['category'], start_date=data['start_date'], end_date= data['end_date'], start_time=data['start_time'], end_time= data['end_time'],cost=data['cost'],venue=data['venue'],flyer=data['flyer'],visible=False,creator=current_user.id)
+	new_event= Event(title=data['title'], name=data['name'], description=data['description'], category=data['category'], start_date=data['start_date'], end_date= data['end_date'], start_time=data['start_time'], end_time= data['end_time'],cost=data['cost'],venue=data['venue'],visible=False,creator=current_user.id)
 	db.session.add(new_event) 
 	db.session.commit()
 
