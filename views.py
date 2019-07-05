@@ -3,9 +3,11 @@ from runapp import app, db
 import uuid
 import jwt
 import datetime
+import os
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import User, Event, Feedback
+from models import User, Event, Feedback, EventFlyer
 from functools import wraps
+from werkzeug.utils import secure_filename
 
 # create decorated function for token authorization
 def token_required(f):
@@ -312,7 +314,7 @@ def get_one_event(current_user,event_id):
 def create_event(current_user):  
 	data= request.get_json()
 
-	new_event= Event(title=data['title'], name=data['name'], description=data['description'], category=data['category'], start_date=data['start_date'], end_date= data['end_date'], start_time=data['start_time'], end_time= data['end_time'],cost=data['cost'],venue=data['venue'],visible=False,creator=current_user.id)
+	new_event= Event(public_name=str(uuid.uuid4()),title=data['title'], name=data['name'], description=data['description'], category=data['category'], start_date=data['start_date'], end_date= data['end_date'], start_time=data['start_time'], end_time= data['end_time'],cost=data['cost'],venue=data['venue'],visible=False,creator=current_user.id)
 	db.session.add(new_event) 
 	db.session.commit()
 
@@ -351,5 +353,32 @@ def delete_event(current_user, event_id):
 @app.route('/event/<event_id>', methods=['POST'])
 def rate_event(event_id):
 	return ''
+
+
+##   
+#IMAGE UPLOAD
+##
+
+def allowed_file(filename):
+	return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
+@app.route('/upload_flyer/<public_name>', methods=['PUT'])
+def upload_file(public_name):
+    event= Event.query.filter_by(public_name=public_name).first()
+    if request.method == 'PUT':
+        if 'file' not in request.files:
+            return jsonify({'message':'No file part'})
+        file =request.files['file']
+        if allowed_file(file.filename):
+            # event=Event.query.filter_by(public_name=public_name).first()
+            filename=secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'],filename))
+            # if name:
+            eventimg=EventFlyer(public_name=public_name,eventId=event.id,flyerPath=os.path.join(app.config['UPLOAD_FOLDER'],filename))
+            db.session.add(eventimg)
+            db.session.commit()
+            return jsonify({'message':'File upload successful'})
 
 

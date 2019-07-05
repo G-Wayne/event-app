@@ -11,6 +11,7 @@ class Event(db.Model): #Additional Attributes - Question 5
 	id   		  = db.Column(db.Integer, primary_key=True)
 	title  		  = db.Column(db.String(100),nullable=False)
 	name		  = db.Column(db.String(50),nullable=False)
+	public_name   = db.Column(db.String(50),unique=True)
 	description   = db.Column(db.String(1000),nullable=False)
 	category      = db.Column(db.String(50),nullable=False)
 	start_date    = db.Column(db.String(20),nullable=False)
@@ -24,6 +25,7 @@ class Event(db.Model): #Additional Attributes - Question 5
 
 class EventFlyer(db.Model):
 	id   		  = db.Column(db.Integer,primary_key=True)
+	public_name   = db.Column(db.String(50),unique=True)
 	eventId       = db.Column(db.Integer,db.ForeignKey('event.id'))
 	flyerPath	  = db.Column(db.String(100),nullable=False)
 
