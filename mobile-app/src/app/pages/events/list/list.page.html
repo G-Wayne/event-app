@@ -1,21 +1,43 @@
 <ion-header>
-  <ion-toolbar>
+  <ion-toolbar>      
+          <ion-buttons  slot="start">
+            <ion-button icon-only>
+              <ion-icon name="add"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+      
+          <ion-buttons slot="end">
+            <ion-button icon-only>
+              <ion-icon name="search"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+       
     <ion-title text-center>Events</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
+<ion-content >
+
+  <ion-searchbar [(ngModel)]="searchTerm" (ionChange)="searchChanged($event)"></ion-searchbar>
 
   <ion-list>
 
-    <ion-item button *ngFor="let item of (results | async )" [routerLink]="['/', 'edit', item.id]">
+    <ion-item button *ngFor="let item of (results | async )" [routerLink]="['/', 'details', item.id]" >
     
-      <ion-label text-wrap>
-        <h3>{{ item.name }}</h3>
+      <ion-card >
+          <img src="{{ item.flyer }}" *ngIf="item.flyer != 'null'">
+      <ion-card-content text-wrap>
+          <ion-card-subtitle>
+              {{ item.title }}
+          </ion-card-subtitle>
+       
         <h3>{{ item.start_date }}</h3>
-        <h3>{{ item.venue }}</h3>
-      </ion-label>
-
+        <h3>{{ item.cost }}</h3>
+        <br>
+        <ion-button shape="round" size="default" >Details</ion-button>
+      </ion-card-content>
+      </ion-card>
+      
     </ion-item>
 
     

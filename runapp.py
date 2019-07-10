@@ -11,7 +11,7 @@ CORS(app)
 app.config.from_pyfile('config.py')
 db = SQLAlchemy(app)
 #SETTING UPLOAD PATH FOR FILES
-UPLOAD_FOLDER = 'C:/Users/Gawayne/eventManagementSystem/event-app/Flyers'
+UPLOAD_FOLDER = 'C:/Users/Gawayne/eventManagementSystem/event-app/mobile-app/src/assets/Flyers'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # need to comment this line before creating db from python shell

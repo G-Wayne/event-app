@@ -1,0 +1,65 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ information?.title }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content padding>
+
+  Event ID is: {{ myId }}
+
+  
+  <ion-card *ngIf="information">
+      <img src= "{{ information.flyer }}" class="info-img">
+        
+      <ion-card-content >
+        <h3>Event Name: {{ information.name }}</h3>
+        <h3>Title: {{ information.title}}</h3>
+        <h3>Start Date: {{ information.start_date }}</h3>
+        <h3>Start Time: {{ information.start_time }}</h3>
+        <h3>End Date: {{ information.end_date }}</h3>
+        <h3>End Time: {{ information.end_time }}</h3>
+        <h3>Cost: {{ information.cost }}</h3>
+        <h3>Venue: {{ information.venue }}</h3>
+      <!-- <ion-button expand="full" (click)="openWebsite()"
+      *ngIf="information.Website && information.Website != 'N/A'">
+      Open Website
+    </ion-button> -->
+
+    <!-- <ion-item *ngFor="let item of information.event ">
+    
+      <ion-label text-wrap>
+          <h2>{{ item.name }}</h2>
+          <h3>{{ item.title}}</h3>
+          <h3>{{ item.start_date }}</h3>
+          <h3>{{ item.start_time }}</h3>
+          <h3>{{ item.end_date }}</h3>
+          <h3>{{ item.end_time }}</h3>
+          <h3>{{ item.cost }}</h3>
+          <h3>{{ item.venue }}</h3>
+      </ion-label>
+      <ion-thumbnail slot="end">
+        <img src="C:/Users/Gawayne/eventManagementSystem/event-app/Flyers/jazz.jpg" class="info-img" *ngIf="item.flyerPath != 'N/A'">
+      </ion-thumbnail>
+      
+    </ion-item> -->
+           
+
+    </ion-card-content>
+  </ion-card>
+
+  <hr>
+  <h3>Event Reviews</h3>
+  <ion-item button *ngFor=" let rev of reviews" color="light" >
+      <ion-icon name="person"></ion-icon>By:{{rev.email}} | date posted<br>
+    Rating:{{rev.rating}}<br>
+    {{rev.comment}}<br>
+    
+    
+    
+  </ion-item>
+
+</ion-content>

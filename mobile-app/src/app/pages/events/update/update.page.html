@@ -1,0 +1,77 @@
+<ion-header>
+  <ion-toolbar>
+      <ion-buttons slot="start">
+          <ion-back-button defaultHref="/"></ion-back-button>
+      </ion-buttons>
+    <ion-title>Update Event</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content padding>
+  <form [formGroup]="eventForm" (ngSubmit)="onFormSubmit(eventForm.value)">
+    <ion-item>
+      <ion-label position="floating">Event Title</ion-label>
+      <ion-input type="text" formControlName="title"></ion-input>
+    </ion-item>
+
+    <ion-item>
+        <ion-label position="floating">Event Name</ion-label>
+        <ion-input type="text" formControlName="name"></ion-input>
+    </ion-item>
+
+
+    <ion-item>
+        <ion-label position="stacked">Event Description</ion-label>
+        <ion-textarea formControlName="description"></ion-textarea>
+    </ion-item>
+
+    <ion-item>
+        <ion-label position="floating">Event Category</ion-label>
+        <ion-input type="text" formControlName="category"></ion-input>
+    </ion-item>
+
+    <ion-item>
+        <ion-label position="floating">Event Start Date</ion-label>
+        <ion-input type="text" formControlName="start_date"></ion-input>
+    </ion-item>
+
+    <ion-item>
+        <ion-label position="floating">Event Start Time</ion-label>
+        <ion-input type="text" formControlName="start_time"></ion-input>
+    </ion-item>
+
+    <ion-item>
+        <ion-label position="floating">Event End Date</ion-label>
+        <ion-input type="text" formControlName="end_date"></ion-input>
+    </ion-item>
+
+    <ion-item>
+        <ion-label position="floating">Event End Time</ion-label>
+        <ion-input type="text" formControlName="end_time"></ion-input>
+    </ion-item>
+
+    <!-- <ion-item>
+        <ion-label position="floating">Upload Flyer</ion-label>
+        <ion-input type="file" formControlName="flyer"></ion-input>
+    </ion-item> -->
+
+    <ion-item>
+        <ion-label position="floating">Event Cost</ion-label>
+        <ion-input type="number" formControlName="cost"></ion-input>
+    </ion-item>
+
+    <ion-item>
+        <ion-label position="floating">Event Venue</ion-label>
+        <ion-input type="text" formControlName="venue"></ion-input>
+    </ion-item>
+
+    <!-- <ion-item>
+        <ion-label position="floating">Event Visible</ion-label>
+        <ion-input type="text" formControlName="visible"></ion-input>
+    </ion-item> -->
+
+    <ion-button type="submit" color="success" [disabled]="!eventForm.valid"> <ion-icon name="checkmark"></ion-icon>Save Changes</ion-button>
+    <ion-button type="submit" color="danger"  defaultHref="/" > <ion-icon name="close"></ion-icon>Cancel</ion-button>
+  </form>
+
+</ion-content>

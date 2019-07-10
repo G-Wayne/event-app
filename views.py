@@ -150,15 +150,24 @@ def login():
 #######################START VISIBLE EVENTS FOR ALL USERS ####################################
 
 # Get All visible events
+
 @app.route('/events', methods=['GET'])
 def get_events():
 
+    
     events= Event.query.filter_by(visible=True).all()
+    
+    
+    if not events:
+        return jsonify({'message': 'No event found'})
 
+    
     output=[]
 
     for event in events:
         event_data={}
+        eventflyer= EventFlyer.query.filter_by(eventId=event.id).first()
+        event_data['flyer']= eventflyer.flyerPath
         event_data['id']= event.id
         event_data['title']= event.title
         event_data['name']= event.name
@@ -177,14 +186,72 @@ def get_events():
     return jsonify({'event': output})
 
 # search for visible events
+# @app.route('/events/<event_id>', methods=['GET'])
+# def search_one_event(event_id):
+
+#     event= Event.query.filter_by(id=event_id, visible=True).first()
+
+#     #When searching for an event we are ensuring that the admin has made that event public.
+#     if not event.visible:
+#         return jsonify({'message':' Admin has not yet made this event public to be seen'})
+
+#     if not event:
+#         return jsonify({'message': 'No event found'})
+
+#     event_data={}
+#     event_data['id']= event.id
+#     event_data['title']= event.title
+#     event_data['name']= event.name
+#     event_data['description']= event.description
+#     event_data['category']= event.category
+#     event_data['start_date']= event.start_date
+#     event_data['start_time']= event.start_time
+#     event_data['end_date']= event.end_date
+#     event_data['end_time']= event.end_time
+#     event_data['cost']= event.cost
+#     event_data['venue']= event.venue
+
+#     event_data['visible']= event.visible
+#     event_data['creator']= event.creator
+
+#     return jsonify(event_data)
+
+
+@app.route('/events/s=<event_name>', methods=['GET'])
+def search_event(event_name):
+
+    event= Event.query.filter_by(name=event_name, visible=True).first()
+
+    output=[]
+    if not event:
+        return jsonify({'message': 'No event found'})
+
+    event_data={}
+    eventflyer= EventFlyer.query.filter_by(eventId=event.id).first()
+    event_data['flyer']= eventflyer.flyerPath
+    event_data['id']= event.id
+    event_data['title']= event.title
+    event_data['name']= event.name
+    event_data['description']= event.description
+    event_data['category']= event.category
+    event_data['start_date']= event.start_date
+    event_data['start_time']= event.start_time
+    event_data['end_date']= event.end_date
+    event_data['end_time']= event.end_time
+    event_data['cost']= event.cost
+    event_data['venue']= event.venue
+   
+    event_data['visible']= event.visible
+    event_data['creator']= event.creator
+    output.append(event_data)
+
+    return jsonify({'event': output})
+
 @app.route('/events/<event_id>', methods=['GET'])
-def search_one_event(event_id):
+def event(event_id):
 
     event= Event.query.filter_by(id=event_id, visible=True).first()
 
-    #When searching for an event we are ensuring that the admin has made that event public.
-    if not event.visible:
-        return jsonify({'message':' Admin has not yet made this event public to be seen'})
 
     if not event:
         return jsonify({'message': 'No event found'})
@@ -201,15 +268,144 @@ def search_one_event(event_id):
     event_data['end_time']= event.end_time
     event_data['cost']= event.cost
     event_data['venue']= event.venue
-    event_data['flyer']= event.flyer
+   
     event_data['visible']= event.visible
     event_data['creator']= event.creator
 
-    return jsonify(event_data)
+    return jsonify({'event': event_data})
+
+
+# Event details
+@app.route('/events/details/<event_id>', methods=['GET'])
+def event_details(event_id):
+
+    event= Event.query.filter_by(id=event_id, visible=True).first()
+    eventflyer= EventFlyer.query.filter_by(eventId=event_id).first()
+
+
+    if not event:
+        return jsonify({'message': 'No event found'})
+
+    event_data={}
+    event_data['flyer']= eventflyer.flyerPath
+    event_data['id']= event.id
+    event_data['title']= event.title
+    event_data['name']= event.name
+    event_data['description']= event.description
+    event_data['category']= event.category
+    event_data['start_date']= event.start_date
+    event_data['start_time']= event.start_time
+    event_data['end_date']= event.end_date
+    event_data['end_time']= event.end_time
+    event_data['cost']= event.cost
+    event_data['venue']= event.venue
+   
+    event_data['visible']= event.visible
+    event_data['creator']= event.creator
+
+    return jsonify({'event': event_data})
+
+
+# Edit to Update Event 
+@app.route('/events/<public_name>',methods=['PUT'])
+
+def edit_event(public_name):
+    event = Event.query.filter_by(id=public_name).first()
+    # eventflyer= EventFlyer.query.filter_by(eventId=public_name).first()
+    
+    if not event:
+        return jsonify({'message':'No event found'})
+      
+    data = request.get_json()
+   
+    
+    # event.id=event.id
+    # event.public_name=event.public_name
+    # event.creator=event.creator
+    event.title = data['title']
+    event.name= data['name']
+    event.description = data['description']
+    event.category=data['category']
+    event.start_date =data['start_date']
+    event.start_time =data['start_time']
+    event.end_date = data['end_date']
+    event.end_time =data['end_time']
+    # eventflyer.flyerPath=data['flyer']
+    event.cost = data['cost']
+    event.venue=data['venue']
+    # event.visible =data['visible']
+   
+   
+    # data['title']=event.title
+    # data['name']=event.name
+    # data['description']=event.description
+    # data['category']=event.category
+    # data['start_time']=event.start_time
+    # data['end_time']=event.end_time
+    # data['start_date']=event.start_date
+    # data['end_date']=event.end_date
+    # data['cost']=event.cost
+    # data['venue']=event.venue
+    # data['visible']=event.visible
+
+
+    # if data['name']!='':
+    #     event.name= data['name']
+    # else:
+    #     event.name= event.name
+
+    # if data['description']!='':
+    #     event.description= data['description']
+    # else:
+    #     event.description= event.description
+
+    # if data['category']!='':
+    #     event.category=data['category']
+    # else:
+    #     event.category= event.category
+
+    # if data['start_time']!='':
+    #     event.start_time= data['start_time']
+    # else:
+    #     start_time= event.start_time
+
+    # if data['end_time']!='':
+    #     event.end_time= data['end_time']
+    # else:
+    #     event.end_time= event.end_time
+    
+    # if data['start_date']!='':
+    #     event.start_date= data['start_date']
+    # else:
+    #     event.start_date= event.start_date
+
+    # if data['end_date']!='':
+    #     event.end_date= data['end_date']
+    # else:
+    #     event.end_date= event.end_date
+
+    # if data['cost']!='':
+    #     event.cost= data['cost']
+    # else:
+    #     event.cost= event.cost
+        
+    # if data['venue']!='':
+    #     event.venue= data['venue']
+    # else:
+    #     event.venue= event.venue
+        
+    # if data['visible']!='':
+    #     event.visible= data['visible']
+    # else:
+    #     event.visible= event.visible
+   
+    db.session.commit()
+    
+    return jsonify({'message':'The Event details was updated'})
 
 
 #Question 6-Non-authenticated so we dont need the @token_required decorator
-@app.route('/events/<event_id>/feedback', methods=['POST'])  
+@app.route('/events/feedback/<event_id>', methods=['POST'])  
 def comment_event(event_id):
     event= Event.query.filter_by(id=event_id).first()
     if not event:
@@ -219,18 +415,44 @@ def comment_event(event_id):
     new_Feedback= Feedback(email=data['email'],rating=data['rating'],eventId=event.id, comment=data['comment'])
     db.session.add(new_Feedback) 
     db.session.commit()
-    return jsonify({"message": "Comment created!"})
+    return jsonify({"message": "Feedback created!"})
 
 
-# Get All visible events
-@app.route('/feedback', methods=['GET'])
-def get_comments():
+# Get All feedback for particular event
+@app.route('/events/feedback/<event_id>', methods=['GET'])
+def get_feedback(event_id):
 
-    Feedbacks= Feedback.query.all()
+    feedbacks= Feedback.query.filter_by(eventId=event_id).all()
+
+    if not feedbacks:
+        return jsonify({'message': 'No Feedback found!'})
 
     output=[]
 
-    for feedback in Feedbacks:
+    for feedback in feedbacks:
+        feedback_data={}
+        feedback_data['id']=feedback.id
+        feedback_data['email']= feedback.email
+        feedback_data['rating']= feedback.rating
+        feedback_data['eventId']= feedback.eventId
+        feedback_data['comment']= feedback.comment
+        output.append(feedback_data)
+
+    return jsonify({'feedback': output})
+
+
+# Get All visible events
+@app.route('/events/feedback', methods=['GET'])
+def get_comments():
+
+    feedbacks= Feedback.query.all()
+
+    if not feedbacks:
+        return jsonify({'message': 'No Feedback found!'})
+
+    output=[]
+
+    for feedback in feedbacks:
         feedback_data={}
         feedback_data['id']=feedback.id
         feedback_data['email']= feedback.email
@@ -376,7 +598,7 @@ def upload_file(public_name):
             filename=secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'],filename))
             # if name:
-            eventimg=EventFlyer(public_name=public_name,eventId=event.id,flyerPath=os.path.join(app.config['UPLOAD_FOLDER'],filename))
+            eventimg=EventFlyer(public_name=public_name,eventId=event.id,flyerPath='assets/Flyers/' + filename)
             db.session.add(eventimg)
             db.session.commit()
             return jsonify({'message':'File upload successful'})
